@@ -1,141 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Crop Prediction</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            width: 350px;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        label {
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            margin-top: 15px;
-            width: 100%;
-            padding: 10px;
-            background: #28a745;
-            color: white;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #218838;
-        }
-        #result {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 18px;
-            color: #007bff;
-        }
+        body { font-family: Arial, sans-serif; background: #f4f6f9; display:flex; justify-content:center; align-items:center; height:100vh; }
+        .container { background:#fff; padding:22px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08); width:360px; }
+        h2 { text-align:center; margin-bottom:14px; color:#222; }
+        label { font-weight:600; margin-top:10px; display:block; font-size:14px; }
+        input, select, button { width:100%; padding:9px; margin-top:6px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
+        button { background:#28a745; color:#fff; border:none; cursor:pointer; font-weight:700; }
+        button:hover{ opacity:0.95; }
+        #result { margin-top:16px; text-align:center; font-size:16px; color:#0056b3; min-height:22px; }
+        .small { font-size:13px; color:#666; margin-top:6px; text-align:center; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Crop Prediction</h2>
         <form id="predictForm">
-            <label>Temperature:</label>
-            <input type="number" step="any" id="temperature" required>
+            <label>Temperature</label>
+            <input id="temperature" type="number" step="any" required />
 
-            <label>Humidity:</label>
-            <input type="number" step="any" id="humidity" required>
+            <label>Humidity</label>
+            <input id="humidity" type="number" step="any" required />
 
-            <label>pH:</label>
-            <input type="number" step="any" id="ph" required>
+            <label>pH</label>
+            <input id="ph" type="number" step="any" required />
 
-            <label>Rainfall:</label>
-            <input type="number" step="any" id="rainfall" required>
+            <label>Rainfall</label>
+            <input id="rainfall" type="number" step="any" required />
 
-            <label>Division:</label>
+            <label>Division</label>
             <select id="divisions" required>
-                <option value="">-- Select Division --</option>
-                <option value="cereals">Cereals</option>
-                <option value="pulses">Pulses</option>
-                <option value="oilseeds">Oilseeds</option>
-                <option value="fruits">Fruits</option>
-                <option value="vegetables">Vegetables</option>
+                <option value="">-- Loading options --</option>
             </select>
 
-            <label>State:</label>
+            <label>State</label>
             <select id="States" required>
-                <option value="">-- Select State --</option>
-                <option value="UttarPradesh">Uttar Pradesh</option>
-                <option value="Bihar">Bihar</option>
-                <option value="Odisha">Odisha</option>
-                <option value="MadhyaPradesh">Madhya Pradesh</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="WestBengal">West Bengal</option>
-                <option value="TamilNadu">Tamil Nadu</option>
-                <option value="Kerala">Kerala</option>
+                <option value="">-- Loading options --</option>
             </select>
 
             <button type="submit">Predict Crop</button>
         </form>
 
         <div id="result"></div>
+        <div class="small">Dropdown values are loaded from the dataset to avoid invalid inputs.</div>
     </div>
 
     <script>
-        document.getElementById("predictForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
+    // Populate dropdowns from /options endpoint
+    async function loadOptions() {
+        try {
+            const res = await fetch('/options');
+            if (!res.ok) throw new Error('Failed to load options');
+            const opts = await res.json();
 
-            const inputData = {
-                temperature: parseFloat(document.getElementById("temperature").value),
-                humidity: parseFloat(document.getElementById("humidity").value),
-                ph: parseFloat(document.getElementById("ph").value),
-                rainfall: parseFloat(document.getElementById("rainfall").value),
-                divisions: document.getElementById("divisions").value,
-                States: document.getElementById("States").value
-            };
+            const divSelect = document.getElementById('divisions');
+            const stSelect = document.getElementById('States');
 
-            try {
-                const response = await fetch("/predict_crop", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(inputData)
+            // clear existing
+            divSelect.innerHTML = '<option value="">-- Select Division --</option>';
+            stSelect.innerHTML = '<option value="">-- Select State --</option>';
+
+            if (Array.isArray(opts.divisions)) {
+                opts.divisions.forEach(v => {
+                    const o = document.createElement('option');
+                    o.value = v;
+                    o.textContent = v;
+                    divSelect.appendChild(o);
                 });
-
-                const result = await response.json();
-                if (result.predicted_crop_label) {
-                    document.getElementById("result").innerText = "Predicted Crop: " + result.predicted_crop_label;
-                } else {
-                    document.getElementById("result").innerText = "Error: " + result.error;
-                }
-            } catch (err) {
-                document.getElementById("result").innerText = "Error connecting to server.";
             }
-        });
+
+            if (Array.isArray(opts.States)) {
+                opts.States.forEach(v => {
+                    const o = document.createElement('option');
+                    o.value = v;
+                    o.textContent = v;
+                    stSelect.appendChild(o);
+                });
+            }
+        } catch (err) {
+            document.getElementById('result').textContent = 'Could not load dropdown options. Check server / DataSet.csv.';
+            // Keep placeholders so user sees failure
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadOptions);
+
+    document.getElementById('predictForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const resultDiv = document.getElementById('result');
+
+        const inputData = {
+            temperature: parseFloat(document.getElementById('temperature').value),
+            humidity: parseFloat(document.getElementById('humidity').value),
+            ph: parseFloat(document.getElementById('ph').value),
+            rainfall: parseFloat(document.getElementById('rainfall').value),
+            divisions: document.getElementById('divisions').value,
+            States: document.getElementById('States').value
+        };
+
+        // basic client-side validation
+        if (!inputData.divisions || !inputData.States) {
+            resultDiv.textContent = 'Please select Division and State.';
+            return;
+        }
+
+        resultDiv.textContent = 'Predicting...';
+
+        try {
+            const res = await fetch('/predict_crop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(inputData)
+            });
+
+            const j = await res.json();
+            if (res.ok && j.predicted_crop_label) {
+                resultDiv.textContent = 'Predicted Crop: ' + j.predicted_crop_label;
+            } else {
+                resultDiv.textContent = 'Error: ' + (j.error || 'Unknown error');
+            }
+        } catch (err) {
+            resultDiv.textContent = 'Error connecting to server.';
+        }
+    });
     </script>
 </body>
 </html>
+
