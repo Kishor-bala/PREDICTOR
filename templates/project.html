@@ -76,10 +76,27 @@
             <input type="number" step="any" id="rainfall" required>
 
             <label>Division:</label>
-            <input type="text" id="divisions" placeholder="e.g., cereals" required>
+            <select id="divisions" required>
+                <option value="">-- Select Division --</option>
+                <option value="cereals">Cereals</option>
+                <option value="pulses">Pulses</option>
+                <option value="oilseeds">Oilseeds</option>
+                <option value="fruits">Fruits</option>
+                <option value="vegetables">Vegetables</option>
+            </select>
 
             <label>State:</label>
-            <input type="text" id="States" placeholder="e.g., UttarPradesh" required>
+            <select id="States" required>
+                <option value="">-- Select State --</option>
+                <option value="UttarPradesh">Uttar Pradesh</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Odisha">Odisha</option>
+                <option value="MadhyaPradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="WestBengal">West Bengal</option>
+                <option value="TamilNadu">Tamil Nadu</option>
+                <option value="Kerala">Kerala</option>
+            </select>
 
             <button type="submit">Predict Crop</button>
         </form>
@@ -122,3 +139,4 @@
     </script>
 </body>
 </html>
+
